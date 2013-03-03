@@ -1,0 +1,124 @@
+1.对package main执行go build，则在当前目录下会生成一个可执行文件（无论是否定义了$GOBIN），不会生成其他的中间的.a文件
+2.对非pakage mian执行go build，则什么都不执行
+3.对package main执行go install，则会生成一个可执行文件（如果定义了$GOBIN,则在$GOBIN目录下生成，如果没有定义$GOBIN，则在$GOPATH/bin目录下生成），同时在$GOPATH/pkg中生成中间定.a文件
+4.对非package main执行go install,则会在$GPATH/pkg中生成.a文件
+
+直接执行go build或者go install，则执行的是当前目录下的所有文件
+执行go build package或者go install package，其中package为所执行在$GOPATH/src目录下中目录下的所有文件，package为目录的完整名称
+
+对于go build和go install执行生成的文件名称是被执行文件所在的上一层目录的名称
+对于import语句的名称也是目录的完整名称。与被执行的文件名无关
+
+对于同一个目录中的文件，申明定package name。其中name必须为一个，对于package main所在的目录，也不能有多个main方法，在package main中的main方法可以直接调用其他package main中的非main方法。
+
+在不同的目录下，可以有多个相同package名字（方法名也可以相同）。他们生成.a文件存放在$GOPATH/pkg中，按目录来区分
+在不同的目录下，可以有多个package main，但是他们生成的可执行文件全部都放在$GOPATH/bin中，没有目录，如果package main文件的上层目录名称有相同的，则晚执行go install的文件会覆盖早执行go install的文件。
+
+变量:
+	var, :=
+常量:
+	const
+boolean
+	var valid bool = true
+	available := false
+数值：
+	int(等同于int32),int8,int16,int32(rune,默认),int64
+	uint8(byte),unit16,unit32,uint64
+	float32,float64(默认)
+	complex128,complex64
+字符串:
+	var value string = "yes"
+	no, yes, maybe := "no", "yes", "maybe"
+	s := "hello,"
+	m := " world"
+	a := s + m
+	m := `hello
+		world`(输出字面格式)
+错误类型：
+	err := errors.New("error")
+
+分组操作：
+	import (
+	       "fmt"
+	       "os"
+	)
+	
+	const (
+	      i = 100
+	      pi = 3.14
+	      prefix = "Go_"
+	)
+	
+	var(
+		i int
+		pi float32
+		prefix string
+	)
+
+除非被显示设置为其它值或者iota,每个const分组定的第一个常量被默认设置为它的0值，第二个后续常量被默认设置为它前面那个常量的值,如果前面那个常量的值是iota，那么它也被设为iota
+
+iota用来申明enum，默认为0,每次调用加1，
+const (
+      x = iota // x == 0
+      y = iota // y == 1
+      z = iota // z == 2
+      w	       // w == 3
+)
+
+const v = iota // 没遇到一个const关键字，iota会重置为0 v == 0
+
+
+
+array：
+	var arr [n]type
+	var arr [10]int
+	arr[0] = 42
+	arr[1] = 13
+	[3]int与[4]int是不同的类型
+当把一个数组作为参数传入函数,传入的是数组的副本，不是它定指针，如果使用指针，就用slice
+a := [3]int{1, 2, 3}
+b := [10]int{1, 2, 3} //前三个元素为1,2,3,后面的为0
+c := [...]int{4, 5, 6} // 用...来省略c长度
+doubleArray := [2][4]{[4]int{1, 2, 3, 4}, [4]{5, 6, 7, 8}}
+easyArray := [2][4]{{1, 2, 3, 4}, {5, 6, 7, 8}}
+
+slice:
+	slice不是一个数组，是一个引用，slice总是指向一个底层数组，申明slice不用指定长度，但是数组一定要指定长度。
+	var fslice []int
+	slice := []byte{'a', 'b', 'c', ‘d’}
+slice像一个结构体，包含三个元素：
+1.一个指针，指向数组中slice指定的开始位置
+2.长度，slice的长度
+3.最大长度，slice开始位置到数组的最后位置的长度
+
+slice有几个内置的函数：
+1.len：获取slice的长度
+2.cap：获取slice的最大容量
+3.append：向slice追加一个或多个元素，返回一个和slicey一样类型的slice
+4.copy：从源slice的src中复制元素到目标dst,返回复制的元素个数
+append会改变slice引用数组的内容，会影响同一数组的其它slice。
+当slice没有剩余空间（cap - len == 0）时，会动态分配新的数组空间，返回的slice数组指针n将指向这个空间,而原数组的内容不变，其它引用次数组定slice不受影响。
+
+
+map：
+	map[keyType]valueType
+	var number map[string]int
+	numbers := make(map[string]int)
+	numbers["one"] = 1
+map是一种引用类型.len函数返回map键的数量，map是无序的，map["one"] = 11,用来修改map的值
+
+rating := map[string]float32 {"C":5}
+csharRating, ok := rating["Java"] //如果rating包含键Java,则ok为true，否则为false
+delete(rating, "C") //删除key为C的元素
+
+
+make用于内建类型（map，slice，channel）的内存分配
+new用于各种类型内存分配
+
+new(T) 分配了零值填充的T类型的内存空间，并且返回其地址，即一个*T类型的值,它返回一个指针，
+指向新分配的类型T的零值
+
+make只能创建map，slice。channel
+内建函数make(T, args)返回一个有初始值（非零）的T类型,而不是*T。
+导致map，slice，channel不同的原因是指向数据结构的引用在使用前必须被初始化。make初始化他们内部
+的数据结构，填充适当的值。
