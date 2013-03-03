@@ -1,7 +1,0 @@
-package testapp
-
-import "fmt"
-
-func Test2() {
-     fmt.Println("你好，世界2！\n")
-}
