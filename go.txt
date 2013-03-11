@@ -9,7 +9,7 @@
 对于go build和go install执行生成的文件名称是被执行文件所在的上一层目录的名称
 对于import语句的名称也是目录的完整名称。与被执行的文件名无关
 
-对于同一个目录中的文件，申明定package name。其中name必须为一个，对于package main所在的目录，也不能有多个main方法，在package main中的main方法可以直接调用其他package main中的非main方法。
+对于同一个目录中的文件，申明的package name。其中name必须为一个，对于package main所在的目录，也不能有多个main方法，在package main中的main方法可以直接调用其他package main中的非main方法。
 
 在不同的目录下，可以有多个相同package名字（方法名也可以相同）。他们生成.a文件存放在$GOPATH/pkg中，按目录来区分
 在不同的目录下，可以有多个package main，但是他们生成的可执行文件全部都放在$GOPATH/bin中，没有目录，如果package main文件的上层目录名称有相同的，则晚执行go install的文件会覆盖早执行go install的文件。
@@ -97,7 +97,7 @@ slice有几个内置的函数：
 3.append：向slice追加一个或多个元素，返回一个和slicey一样类型的slice
 4.copy：从源slice的src中复制元素到目标dst,返回复制的元素个数
 append会改变slice引用数组的内容，会影响同一数组的其它slice。
-当slice没有剩余空间（cap - len == 0）时，会动态分配新的数组空间，返回的slice数组指针n将指向这个空间,而原数组的内容不变，其它引用次数组定slice不受影响。
+当slice没有剩余空间（cap - len == 0）时，会动态分配新的数组空间，返回的slice数组指针n将指向这个空间,而原数组的内容不变，其它引用此数组的slice不受影响。
 
 
 map：
@@ -122,3 +122,338 @@ make只能创建map，slice。channel
 内建函数make(T, args)返回一个有初始值（非零）的T类型,而不是*T。
 导致map，slice，channel不同的原因是指向数据结构的引用在使用前必须被初始化。make初始化他们内部
 的数据结构，填充适当的值。
+
+if语句没有括号
+	if x := computedValue(); x > 10 {
+	  fmt.Println("x is greater than 10")
+	} else {
+	  fmt.Println("x is less than 10") 
+	}
+	fmt.Println(x) //x在此不能引用，它只在if语句内部起作用
+
+	if condition {
+	  statement
+	} else if condition {
+	  statement
+	} else {
+	  statement
+	}
+
+goto语句：
+goto语句只能跳转到当前函数定义的标签，标签名大小写敏感
+
+for语句：
+for expression1; expression2; expression3 {
+    statement
+}
+
+for语句可以用来循环读取数据，又可以当while来控制逻辑，也可以迭代
+	sum := 1
+	for ; sum < 1000; {
+	    sum += sum
+	}可以省略成
+	for sum < 1000 {
+	    sum += sum
+	}相当与while语句
+
+break和continue，break可以和标签一起用
+for可以配合range
+	for k, v := range map {
+	    fmt.Println(“map's key:”,k)
+	    fmt.Println("map's value:",v)
+	}
+
+switch语句：
+	switch sExpr {
+	case expr1:
+	     some instructions
+	case expr2:
+	     some other instructions
+	default:
+	     other code
+	}
+
+case 后面可以接多个值，如 case 2, 3, 4
+默认每个case最后都带有break,可以用fallthrough强制执行后面的case代码
+
+函数：
+func funcName(input1 type1, input2 type2) (output1 type1, output2 type2) {
+     return value1, value2
+}
+
+其中返回的变量可以省略，直接写成类型：(type1, type2)
+如果只有一个返回值并且不声明返回值变量，则可以省略返回值的括号
+如果没有返回值，则省略最后的返回信息
+多于2个相同类型的变量或返回值，则可以写成一个，默认取离它最近的类型，如
+func max(a, b int) int {
+}其中a, b int代表a int, b int
+
+如果在返回值写了变量名，则在函数体类有赋值，可以不用写return语句
+
+可变参数：
+func myfun(arg ...int) {
+     for _, n := range arg {
+     	 fmt.Printf("And the number is: %d\n", n)
+     }
+}其中arg是一个int的slice
+
+
+在函数传递大的结构体时，可以用指针，它是一个8bytes的地址
+
+defer语句：
+在defer后指定的函数会在函数退出前调用，当函数执行到最后时，多个defer语句会按照逆序执行
+for i := 0; i < 5; i++ {
+    defer fmt.Printf("%d ", i)
+}返回4 3 2 1 0，因为defer是用栈结构的
+
+type：
+可以用type来定义函数，它的类型是是所有拥有相同的参数，相同的返回值的一种类型函数。
+type typeName func(input1 type1, input2 type2) (result1 type1, result2 type2)
+type testInt func(int) bool
+
+func isOdd(integer int) bool {
+}
+
+func isEven(integer int) bool {
+}
+
+可以在别的函数里申明类型为testInt,并且在调用函数时传递isOdd或者isEven
+
+
+panic：
+是一个内建函数，可以中断原有的控制流程，进入一个令人恐慌的流程中。当函数F调用panic，函数F的执行被中断，但是F中的延迟函数会正常执行，然后F返回到调用它的地方。在调用的地方，F的行为就像调用了panic。这一过程继续向上，直到发生panic的goroutine中所有调用的函数返回，此时程序退出。恐慌可以直接调用panic产生。也可以由运行时错误产生，例如访问越界的数组。
+
+recover:
+是一个内建的函数，可以让进入令人恐慌的流程中的goroutine恢复过来。recover仅在延迟函数中有效。在正常的执行过程中，调用recover会返回nil，并且没有其它任何效果。如果当前的goroutine陷入恐慌，调用recover可以捕获到panic的输入值，并且恢复正常的执行。
+
+可以在函数的参数里定义func funcName(f func()) (b bool){}
+可以在函数里执行匿名函数：
+func() {
+       // statement
+}()
+
+程序的初始化和执行起始与main包，如果main包还导入了其它包，则会在编译时将他们依次导入,当一个包被多个包导入，他们只会被导入一次，当一个包被导入时，如果该包还导入了其它的包，那么会先将其它包导入进来，然后再对这些包中的包级常量和变量进行初始化，接着执行init函数（如果有的话）,依次类推。等所有被导入的包都加载完毕了，就会开始对main包中的包级常量和变量进行初始化，然后执行main包的init函数,最后执行main函数
+
+import加载：
+1.相对路径：
+	import "./model" //当前文件同一目录的model目录,不建议使用
+2。绝对路径
+	import "shorturl/model" // 加载gopath/src/shorturl/model模块
+
+import (
+       ."fmt"
+)可以在函数里写成Println("hello, world")，省略fmt包名
+
+import (
+       f "fmt"
+)别名，可以用f.Println("Hello,world")
+
+import (
+	"database/sql"
+	_ “github.com/ziutek/mymysql/"
+) _表示引入包，但是不直接使用包里的函数，而是调用该包里的init函数。
+
+
+struct:
+type person struct {
+     name string
+     age int
+}
+
+var P person
+P.name = "irusist"
+P.age = 26
+
+struct的申明方式：
+1.P := person{"Tom", 25}
+2.P := person{age:25, name:"Tom"}
+
+struct的匿名字段：
+type Human struct {
+     name string
+     age int
+     weight int
+}
+
+type Student struct {
+     Human
+     speciality string
+}
+
+mark := Student{Human{"Mark, 24,120}, "Computer Scienece"}
+// 可以访问相应字段
+fmt.Println("His name is ", mark.name)
+fmt.Println("His speciality is ", mark.speciality)
+
+// 修改字段
+mark.Speciality = "AI"
+mark.age = 21
+mark.weight += 50
+
+// 直接访问Human字段
+mark.Human = Human{"Marcus", 55, 220}
+mark.Human.age -= 1
+
+struct的所有内置类型和自定义类型都可以作为匿名字段
+type Skills []string
+type Human struct {
+     name string
+     age int
+     weight int
+}
+
+type Student struct {
+     Human
+     Skills
+     int
+     speciality string
+}
+
+//可以不用全部初始化
+jane := Student{Human:Human{"Jane", 35, 100}, speciality:"Biology"} 
+fmt.Println("Her name is ", jane.name)
+fmt.Println("Her age is ", jane.age)
+fmt.Println("Her speciality is", jane.speciality)
+
+jane.Skills = []string{“anatomy”}
+fmt.Println("Her skills are ", jane.Skills)
+jane.Skills = append(jane.Skills, "physics", "golang")
+jane.int = 3
+
+如果struct和匿名字段有相同的字段，默认指的是struct内的字段，要表示匿名字段的，则需要显式指定
+type Human struct {
+     name string
+     name int
+     phone string
+}
+type Employee struct {
+     Human
+     speciality string
+     phone string
+}
+
+Bob := Employee{Human{“Bob”， 34, “777-444-xxxx”}, "Designer", "333-222"}
+fmt.Println(Bob.phone) // 333-222
+fmt.Println(Bob.Human.,phone) // 777-444-xxxx
+
+
+
+自定义类型
+type typeName typeLiteral：
+type ages int
+type money float32
+type months map[string]int
+m := months{
+  "January" : 31,
+  "February" : 28,
+  ...
+}
+
+const (
+      WHITE = iota //0
+      BLACK // 1(iota)
+      BLUE // 2
+      RED // 3
+      YELLOW //4
+)
+type Coloe byte
+func (v *Box) SetColor(c Color) {
+     b.color = c
+}
+指针作为receiver:
+	如果一个method的receiver是*T，你可以在一个T类型的实例变量V上调用这个method,而不需要&V去调用这个method（指针类型的method可以通过变量本身来调用，而不必用地址去调用，可以在方法内部用变量本身去赋值，而不必用*T = 2）
+	如果一个method的receiver是T，可以在一个*T类型的变量P上调用这个方法，而不需要*P去调用这个method(变量的method可以通过这个变量的地址来调用)
+
+method的继承：
+type Human struct {
+     name string 
+     age int
+     phone string
+}
+type Student struct {
+     Human
+     school string
+}
+type Employee stuct {
+     Human
+     company string
+}
+
+func (h *Human) sayHi() {
+     fmt.println("dad")
+}
+
+mark := Student{Human{"Mark", 24, "2222-22e132"}, "MIT"}
+sam := Employee{"Sam", 45, "112312"}, "Golang Inc"}
+mark.  sayHi()
+sam.SayHi()
+
+method重写
+func (e *Employee) sayHi() {
+//
+}
+
+type Men interface {
+     SayHi()
+     Sing(lyries string)
+}
+
+所有类型都x实现了空的interface（interface{}）,它可以表示任何类型。
+
+fmt.Prointln的参数是Stringer类型：
+type Stringer interface {
+     String() string
+}
+
+
+value, ok = element.(int)
+其中value为变量的值，ok是一个bool类型，element是interface变量
+如果element里面确实存储了T类型的数值,则ok返回true，否则返回false
+
+swith value := element.(type) {
+      case int:
+      	   //
+      case string:
+      	   //
+      default:
+}
+
+element.(type)只能用在switch语句中。
+
+
+嵌入interface：
+type Interface interface {
+     sort.Interface //嵌入字段sort.Interface
+     Push(x interface{}) //
+     Pop() inteface{}
+}
+
+Inteface将sort.Interface所有的method隐式包含进来了。
+sort.Interface:
+type Interface interface {
+     Len() int
+     Less(i, j int)
+     Swap(i, j int)
+}
+
+
+反射：「
+var x float64 = 3.4
+v := reflect.ValueOf(x)
+v.Type() v.Kind() v.Float()
+
+下面的语句会发生错误：
+var x float64 = 3.4
+v := reflect.ValueOf(x) // 传递的是引用，v的值不能改变
+v.SetFloat(7.1) //不能修改
+
+应该改成
+var x float64 = 3.4
+p := reflect.ValueOf(&x)
+v := p.Elem()
+v.SetFloat(7.1)
+
+
+
+
+
