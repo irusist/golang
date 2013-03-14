@@ -25,3 +25,9 @@ bin
 
 # emacs back files
 *~
+\#*\#
+
+# intellij idea files
+.idea
+*.iml
+out
