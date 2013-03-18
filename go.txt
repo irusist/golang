@@ -1,4 +1,4 @@
-1.对package main执行go build，则在当前目录下会生成一个可执行文件（无论是否定义了$GOBIN），不会生成其他的中间的.a文件
+﻿1.对package main执行go build，则在当前目录下会生成一个可执行文件（无论是否定义了$GOBIN），不会生成其他的中间的.a文件
 2.对非pakage mian执行go build，则什么都不执行
 3.对package main执行go install，则会生成一个可执行文件（如果定义了$GOBIN,则在$GOBIN目录下生成，如果没有定义$GOBIN，则在$GOPATH/bin目录下生成），同时在$GOPATH/pkg中生成中间定.a文件
 4.对非package main执行go install,则会在$GPATH/pkg中生成.a文件
@@ -454,6 +454,22 @@ v := p.Elem()
 v.SetFloat(7.1)
 
 
+获取Request.Form值之前要调用Request.ParseForm()
+Request.Form(会将URL的query-string字段和POST相同的参数名保存成一个slice)
+Request.Form.Get(key)获取key的第一个值
+
+Request.FormValue(key)获取key的第一个值，自动调用Request.ParseForm()
+
+内置函数len
+
+Request.Form对于空文本框，空文本区域以及文件上传，元素的值为空值
+如果Request.Form是未选中的复选框和单选按钮，在Request.Form不会产生相应的条目，需要用Request.Form.Get()来获取值
+
+strconv包
+strconv.Atoi(r.Form.Get("age"))
+
+正则包：
+regexp.MatchString("^[0-9]+$", r.Form.Get("age"))
 
 
 
