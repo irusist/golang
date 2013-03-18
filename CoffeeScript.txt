@@ -98,6 +98,74 @@ if debugMode
 
 
 
+定义函数：
+    -> 'Hello, functions!'
+
+console.log do -> 'Hello, functions!'与console.log (-> 'Hello, functions!')()等价
+
+coffeescript隐式返回每个函数最后一个表达式的值
+
+hi = -> 'Hello, functions'
+console.log hi()
+
+greeting = (subject) -> 'Hello, #{subject}'
+console.log greeting 'arguments'
+
+在javascript定义函数有两种方式：
+定义式函数
+var cube1 = function(x) {
+    return Math.pow(x, 3);
+};
+
+声明式函数
+function cube2(x) {
+    return Math.pow(x, 3);
+}
+
+在cube1之前调用它会出错，在cube2作用范围内可以在定义之前调用它
+coffeescript只能有cube1风格的函数
+
+squadron = 'Red'
+xWing = squadron +5 # TypeError
+要写成xWing = "#{squadron}5"
+
+可以定义成
+greeting = -> "Hello, #{arguments[0]}!"
+
+console.log(Math.round 3.1, Math.round 5.2)
+会等价于console.log(Math.round (3.1, Math.round(5.2))),
+函数的参数如果没有括号会默认在表达式的结尾加上结束的括号
+
+要写成console.log Math.round(3.1), Math.round(5.2)
+
+
+Math为内置对象
+cube = (num) -> Math.pow num 3
+
+odd = (num) -> num % 2 is 1 # is 代表===，严格等于，如果传入为字符串‘3'，则会转化为数字，返回true
+
+CoffeeScript的is和==都会转化为javascript的===
+
+odd = (num) ->
+    if typeof num is 'number'
+       if num is Math.round num
+       	  if num > 0
+             num % 2 is 1
+          else
+             throw "#{num} is not positive"
+       else
+           throw "#{num} is not an integer"
+    else
+       throw "#{num} is not a number"
+
+try
+    odd 2.3
+catch e
+    console.log e
+
+
+
+
 
 
 

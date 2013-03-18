@@ -471,5 +471,8 @@ strconv.Atoi(r.Form.Get("age"))
 正则包：
 regexp.MatchString("^[0-9]+$", r.Form.Get("age"))
 
+判断中文：
+regexp.MatchString("^[\\x{4e00}-\\x{9fa5}]+$", r.Form.Get("realname"))
+
 
 
