@@ -1,0 +1,105 @@
+zombie.js		http://zombie.labnotes.org/source
+psd.js			http://meltingice.github.com/psd.js
+backbone.js		http://documentcloud.github.com/backbone
+Eloquent JavaScript	http://eloquentjavascript.net
+JavaScript Garden	http://javascriptgarden.info
+http://developer.mozilla.org/en/JavaScript/Guide
+http://forums.pragprog.com/
+http://pragprog.com/book/tbcoffee/coffeescript
+
+
+
+https://github.com/jashkenas/coffee-script
+http://coffeescript.org/
+
+《javascript语言精粹》
+
+
+http://npmjs.org
+
+安装coffee-script
+1.Node安装：
+	https://gist.github.com/isaacs/579814	第一条
+		echo 'export PATH=$HOME/local/bin:$PATH' >> ~/.bashrc
+		. ~/.bashrc
+		mkdir ~/local
+		mkdir ~/node-latest-install
+		cd ~/node-latest-install
+		curl http://nodejs.org/dist/node-latest.tar.gz | tar xz --strip-components=1
+		./configure --prefix=~/local
+		make install # ok, fine, this step probably takes more than 30 seconds...
+
+		重启终端执行curl https://npmjs.org/install.sh | sh
+	或者https://github.com/mxcl/homebrew（mac系统）
+
+2.node -v，npm -v
+node版本号为偶数时代表稳定版本
+
+3.coffeeScript安装：
+	npm install -g coffee-script
+
+4.coffee -v
+	echo $SHELL（查看使用的是什么终端）
+
+5.npm ls -g（查看node安装类库位置）
+	-g代表npm全局安装的所有类库，如果去掉-g，则列出当前目录下的所有类库
+
+	如果上面命令输出/home/zhulx/local/lib，则将export NODE_PATH=/home/zhulx/local/lib/node_modules增加到~/.bashrc或~/.profile文件中
+
+6.重启终端，输入node，在REPL中输入require('coffee-script')
+
+用git安装最新版coffee-script：
+	git clone https://github.com/jashkenas/coffee-script.git
+	cd coffee-script
+	npm install -g
+
+还原特定版本的CoffeeScript:
+	npm install -g coffee-script@1.1.1
+
+
+编辑器：https://github.com/jashkenas/coffee-script/wiki/Text-editor-plugins
+TextMate插件：https://github.com/jashkenas/coffee-script-tmbundle（Mac系统用）
+
+Web编辑器：
+	http://cloud9ide.com
+	http://github.com/tanepiper/cloud9-livecoffee-ext
+
+
+
+console.log函数式Node.js的全局函数
+
+coffee -h
+coffee -p hello.coffee可以查看生成的javascript
+
+coffee -c 编译成JavaScript的js文件
+coffee -co output source	将source中的所有.coffee文件编译成path目录下.js文件
+coffee -w，可以让coffee命令在后台持续运行，结合-c，每次开发者作出改变之后重新编译代码
+coffee -b，去掉包裹函数
+
+CoffeeScript 日志：
+https://github.com/TrevorBurnham/jitter
+https://github.com/TrevorBurnham/styout
+
+window.debugMode = document.location.hash.match(/debug/) and console?
+console.log 'This is the first of many debug-mode outputs' if debugMode
+
+console?.log 'Thanks you ?, this line is perfectly safe!'
+
+可以用日志来代替注释：
+area = height * (base1 + base2) / 2
+# now we have the area of the trapezoid
+可以替换成
+area = height * (base1 + base2) / 2
+console.log "The area of the trapezoid is #{area}" if debugMode
+也可以使用断言：
+fundamentallaws = ['death', 'taxes', 'gravity']
+if debugMode
+	console.assert 'gravity' in fundamentallaws, 'gravity oughta be a law!'
+
+
+
+
+
+
+
+
