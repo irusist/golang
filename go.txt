@@ -474,5 +474,102 @@ regexp.MatchString("^[0-9]+$", r.Form.Get("age"))
 判断中文：
 regexp.MatchString("^[\\x{4e00}-\\x{9fa5}]+$", r.Form.Get("realname"))
 
+判断英文：
+regexp.MatchString("^[a-zA-Z]+$", r.Form.Get("engname"))
 
+电子邮件判断：
+regexp.MatchString(`^([\w\.\_]{2, 10})@(\w{1,}).([a-z]{2,4})$`, r.Form.Get("email"))
+
+手机号码判断：
+regexp.MatchString(`(1[3|4|5|8][0-9]\d{4,8})$`, r.Form.Get("mobile"))
+
+https://github.com/astaxie/beeku
+
+时间和日期：
+t := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+fmt.Printf("Go launched at %s\n", t.Local())
+
+15位身份证号：
+regexp.MatchString(`^(\d{15})$`, r.Form.Get("usercard"))
+18位身份证号：
+regexp.MatchString(`^(\d{17})([0-9]|X)$`, r.Form.Get("usercard"))
+
+
+html/template:
+func HTMLEscape(w io.Writer, b []byte) //把b进行转义之后写到w,用于输出到客户端
+func HTMLEscapeString(s String) string // 转义s之后返回结果字符串
+func HTMLEscaper(arg ...interface{}) string //  支持多个参数一起转义，返回结果字符串
+
+
+text/template
+// 生成一个名称为t的模板，{{.}}代表具体的内容 !{{end}}结束
+t, _ := template.New("foo").Parse(`{{define "t"}} hello, {{.}}!{{end}}`)
+t.ExecuteTemplate(w, "t", "<script>alert('you have been pwned')</script>")
+客户端输出未转义的：hello, <script>alert('you have been pwned')</script>!
+
+html/template
+t, _ := template.New("foo").Parse(`{{define "t"}} hello, {{.}}!{{end}}`)
+t.ExecuteTemplate(w, "t", template.HTML("<script>alert('you have been pwned')</script>"))
+客户端输出未转义的：hello, <script>alert('you have been pwned')</script>!
+
+html/template
+t, _ := template.New("foo").Parse(`{{define "t"}} hello, {{.}}!{{end}}`)
+t.ExecuteTemplate(w, "t", "<script>alert('you have been pwned')</script>")
+客户端输出转义的：hello, &lt;script&gt;alert(&#39;you have been pwned&#39;)&lt;/script&gt;!
+
+
+防止重复提交：
+在模板里增加一个隐藏字段token(通过MD5（时间戳）)来获取唯一值，把这个值存储到服务器端的session来控制
+currentTime := time.Now().Unix() // 生成时间戳
+h := md5.New()
+io.WriteString(h, strconv.FormatInt(currentTime, 10))
+token := fmt.Sprintf("%x", h.Sum(nil))
+t, _ := template.ParseFiles("login.gtpl")
+t.Execute(w, token)
+
+文件上传：
+form的enctype属性：
+application/x-www-form-urlencoded   // 表示在发送前编码所有字符（默认）
+multipart/form-data // 不对字符编码。在使用包含文件上传空间的表单时，必须使用该值。
+text/plain  // 空格转换为“+”加号，但不对特殊字符编码
+
+处理文件上传：
+r.ParseMultipartForm(32 << 20) 参数表示maxMemory，调用该方法后，上传的文件存储在maxMemory大小的内存里
+如果文件超过了maxMemory，那么剩下的部分将存储在系统的临时文件中。
+
+获取其他非文件字段信息的时候就不需要调用r.ParseForm，因为在需要的时候系统自动去调用，ParseMultipartForm
+调用一次之后，之后的调用不会再有效果
+
+可以用r.FormFile("uploadfile")获取上面的文件句柄，返回的是(multipart.File, *multipart.FileHeader, error)
+
+返回的*multipart.FileHeader的Header的结果为(%v调用)
+map[Content-Type:[application/pdf] Content-Disposition:[form-data; name="uploadfile"; filename="51CTO下载-智能Web算法.pdf"]]
+
+os.OpenFile("./test/" + handler.Filename, os.O_WRONLY|os.O_CREATE, 0666)用于创建文件
+
+io.Copy(f, file)用于复制文件
+
+文件上传步骤：
+1.form中增加enctype=“multipart/form-data”
+2.服务器调用r.ParseMultipartForm，把上传文件存储在内存和临时文件中
+3.使用r.FromFile获取文件句柄，对文件进行处理
+
+
+用代码模拟浏览器上传步骤
+1.生成buffer：                      bodyBuf := &bytes.Buffer{}
+2.将buffer包装成multipart.Writer    bodyWriter := multipart.NewWriter(bodyBuf)
+3.调用fileWriter, err := bodyWriter.CreateFormFile(fieldame, filename)生成如下的数据：
+--boundary\r\n
+Content-Disposition: form-data; name=fieldname; filename=filename\r\n
+Content-Type: application/octet-stream\r\n
+\r\n
+4.调用fh, err := os.Open(filename)来获取文件句柄
+5.调用_, err = io.Copy(fileWriter, fh) 将文件的字节数据传输到buffer中
+6.调用contentType := bodyWriter.FormDataContentType()生成如下数据：
+“multipart/form-data; boundary=boundary”
+7.调用resp, err := http.Post(targetUrl, contentType, bodyBuf)，发送请求
+8.调用resp_body, err := ioutil.ReadAll(resp.Body)获取返回的数据
+9.resp.Status表示返回的状态
+
+multipart.WriteField(fieldname, value string)可以写非文件字段
 
