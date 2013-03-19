@@ -573,3 +573,72 @@ Content-Type: application/octet-stream\r\n
 
 multipart.WriteField(fieldname, value string)可以写非文件字段
 
+
+
+
+数据库：database/sql
+1.sql.Register用来注册数据库驱动。当第三方开发者开发数据库驱动时,都会实现init函数，在init里面会调用这个
+Register(name string, driver driver.Driver)完成本驱动的注册
+
+    //https://github.com/mattn/go-sqlite3驱动
+    func init() {
+        sql.Register("sqlite3", &SQLiteDriver{})
+    }
+
+    //https://github.com/mikespook/mymysql驱动
+    // Driver automatically registered in database/sql
+    var d = Driver{proto: "tcp", raddr: "127.0.0.1:3306"}
+    func init() {
+        Register("SET NAMES utf8")
+        sql.Register("mymysql", &d)
+    }
+
+
+    import (
+          "database/sql"
+          _ "github.com/mattn/go-sqlite3"
+    )
+
+    _表示引入后面的包名而不直接使用这个包中定义的函数，变量等资源。
+    包在引入的时候会自动调用包的init函数以完成对包的初始化
+    init函数相当于java中的静态变量，用_相当于java的Class.forName(Class),只初始化而不创建对象
+
+2.driver.Driver是数据库驱动接口，定义了一个接口method: Open(name string),这个方法返回一个数据库的Conn接口。
+    type Driver interface {
+        Open(name String) (Conn, error)
+    }
+    返回的Conn只能进行一次goroutine的操作，不能应用于多个goroutine里面，如下代码错误的：
+    go goroutineA(Conn) // 执行查询操作
+    go goroutineB(Conn)  // 执行插入操作
+3.driver.Conn是一个数据库连接的接口定义
+    type Conn interface {
+        Prepare(query string) (Stmt, error)
+        Close() error
+        Begin() (Tx, error)
+    }
+
+    Prepare函数返回与当前连接相关的执行sql语句的准备状态,可以进行查询，删除等操作
+    Closeh函数关闭当前的连接，执行释放连接拥有的资源等清理工作，
+    因为驱动实现了database/sql里面建议的conn pool，所以不用去实现缓存conn之类
+    Begin函数返回一个代表事务处理的Tx，通过它可以进行查询，更新等操作,或者对事务进行回滚，提交
+4.driver.Stmt是一种准备好的状态,和Conn相关联，而且只能用于一个goroutine中，不能用于多个goroutine
+    type Stmt interface {
+        Close() error
+        NumInput() int
+        Exec(args []value) (Result, error)
+        Query(args []value) (Result, error)
+    }
+    Close函数关闭当前的链接状态，但是如果当前正在执行query，query还是有效返回rows数据
+    NumInputh函数返回当前预留参数的个数,当返回>=0时数据库驱动就会智能检查调用者的参数，当数据库驱动包不知道
+    预留参数的时候,返回-1
+    Exec函数执行Prepare准备好的sql,传入参数执行update/insert等操作,返回Result数据
+    Query函数执行Prepare准备好的sql,传入需要的参数执行select操作，返回Row结果集
+5.driver.Tx
+
+
+
+
+
+
+
+
